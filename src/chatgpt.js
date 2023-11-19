@@ -16,29 +16,33 @@ import {
   
     const sendData = async () => {
       setLoading(true);
-      const configuration = new Configuration({
-        organization: '',
-        apiKey: '',
-      });
-      const openai = new OpenAIApi(configuration);
-  
-      const response = await openai.createCompletion({
-        model: '',
-        prompt: inputValue + '->',
-        temperature: 1,
-        max_tokens: 200,
-        top_p: 1,
-        frequency_penalty: 0,
-        presence_penalty: 0,
-      });
-      var answer = response.data.choices[0].text;
-  
-      setInputValuesWithAnswers([
-        ...inputValuesWithAnswers,
-        { input: inputValue, answer },
-      ]);
-      setInputValue('');
-      setLoading(false);
+    
+      try {
+        const response = await fetch('http://localhost:5000/ask', { 
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ input: inputValue }),
+        });
+    
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+    
+        const data = await response.json();
+        var answer = data.answer;
+    
+        setInputValuesWithAnswers([
+          ...inputValuesWithAnswers,
+          { input: inputValue, answer },
+        ]);
+      } catch (error) {
+        console.error('Error during fetching:', error);
+      } finally {
+        setInputValue('');
+        setLoading(false);
+      }
     };
     const handleInputChange = (event) => {
       setInputValue(event.target.value);
@@ -57,7 +61,7 @@ import {
         height="90vh"
       >
         <Typography sx={{ fontSize: '30px' }}>
-          ChatGpt - chatbot
+        Macroeconomic Researcher and Large Language Chat GPT Dashboard
         </Typography>
         <div className="body" style={{ minHeight: '87%', overflowY: 'auto' }}>
           <div className="scrolled-body">
